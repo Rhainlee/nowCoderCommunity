@@ -1,8 +1,11 @@
 package com.nowcoder.community.controller;
 
+import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,13 +13,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
 @Controller
 public class LoginController implements CommunityConstant {
 
+    private  static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Producer kaptchaProducer;
+
 
     //访问注册页面
     @RequestMapping(path = "/register", method = RequestMethod.GET)
@@ -28,8 +43,33 @@ public class LoginController implements CommunityConstant {
     @RequestMapping(path = "/login", method = RequestMethod.GET)
     public String getLoginPage() {
         return "/site/login";
-    }
+    }  //返回login.html,里面包含图片路径，浏览器通过路径再次访问服务器获得验证码图片
 
+
+    @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
+    public void getKaptcha(HttpServletResponse response, HttpSession session){
+        //注意这里返回类型为void,因为这里向浏览器输出一个图片，不是字符串，也不是html
+        //我们需要用Response对象手动向浏览器输出
+        //我们生成完验证码之后，服务端需要记住，再次访问时用来检验验证码是否正确---跨请求用session/cookie
+        //验证码不能存在浏览器端（cookie），否则很容易被盗取
+
+        // 生成验证码 （需要先获取Bean并注入到容器之中）
+        String text = kaptchaProducer.createText();
+        BufferedImage image = kaptchaProducer.createImage(text);
+
+        //将验证码存入session
+        session.setAttribute("kaptcha", text);
+
+        //将图片输出给浏览器
+        response.setContentType("image/png");
+        try {
+            OutputStream os = response.getOutputStream();//获取输出流，图片用字节流比较好
+            ImageIO.write(image, "png", os);
+        } catch (IOException e) {
+            logger.error("响应验证码失败" + e.getMessage());
+        }
+
+    }
 //    //处理登录请求
 //    @RequestMapping(path = "/login", method = RequestMethod.POST)
 //    public String login(Model model, User user){
