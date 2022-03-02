@@ -4,16 +4,17 @@ import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -31,6 +32,9 @@ public class LoginController implements CommunityConstant {
 
     @Autowired
     private Producer kaptchaProducer;
+
+    @Value("${server.servlet.context-path}")
+    private  String contextPath;
 
 
     //访问注册页面
@@ -70,16 +74,44 @@ public class LoginController implements CommunityConstant {
         }
 
     }
-//    //处理登录请求
-//    @RequestMapping(path = "/login", method = RequestMethod.POST)
-//    public String login(Model model, User user){
-//        if (user == null){
-//            return "/site/login";
-//        }
-//
-//        //findUserByUsernameAndPassword;
-//        return "/index";
-//    }
+    //处理登录请求
+    //因为用的是post方法，所以路径可以重复（请求方式不同）
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login(Model model, String username, String password, String code, Boolean rememberMe,
+                        HttpSession session, HttpServletResponse response){
+        //先检查验证码（不涉及业务层）
+        String kaptcha = (String) session.getAttribute("kaptcha");
+        if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            model.addAttribute("codeMsg", "验证码不正确");
+            return "/site/login";
+        }
+
+        //检查账号，密码
+        //一个小bug:checkbox选中会传true，没选中会不传值,暂定解决办法：空值检查
+        if(rememberMe == null){
+            rememberMe =false;
+        }
+        int expiredSeconds = rememberMe ? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        if (map.containsKey("ticket")){ //有凭证证明登录成功
+            //给客户端发ticket,做登录保持
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
+            cookie.setPath(contextPath);  //整个项目都有效
+            cookie.setMaxAge(expiredSeconds);
+            response.addCookie(cookie);
+
+            return "redirect:/index";  //这里是另一次请求，用重定向
+        } else { //登录失败，要返回各种错误信息
+
+            model.addAttribute("usernameMsg", map.get("usernameMsg")); //返回为null对页面展现没有影响
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+
+            return "/site/login";
+        }
+
+
+
+    }
 
 
     //处理注册请求
@@ -113,5 +145,11 @@ public class LoginController implements CommunityConstant {
         }
         model.addAttribute("emailMsg", userService.findUserById(userId).getEmail());
         return "/site/operate-result";
+    }
+
+    @RequestMapping(path = "/logout", method = RequestMethod.GET)
+    public String logout(@CookieValue("ticket") String ticket){//从cookie中取key为code的值赋给参数code
+        userService.logout(ticket);
+        return "redirect:/login";
     }
 }
