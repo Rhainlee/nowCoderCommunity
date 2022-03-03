@@ -6,6 +6,7 @@ import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.HostHolder;
 import com.nowcoder.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class UserService implements CommunityConstant {
 
     @Autowired
     private LoginTicketMapper loginTicketMapper;
+
+    @Autowired
+    private HostHolder hostHolder;
 
     //注入域名，即注入一个固定值用@Value注解
     @Value("${community.path.domain}")
@@ -185,5 +189,41 @@ public class UserService implements CommunityConstant {
         return userMapper.updateHeader(userId, headerUrl);
     }
 
+    // 修改密码
+    public Map<String, Object> updatePassword(String oldPassword, String newPassword, String confirmPassword){
 
+        Map<String, Object> map = new HashMap<>();
+        // 空值及错误输入处理
+        if (StringUtils.isBlank(oldPassword)){
+            map.put("oldPasswordMsg", "原密码不能为空");
+            return map;
+        }
+        if (StringUtils.isBlank(newPassword)){
+            map.put("newPasswordMsg", "新密码不能为空");
+            return map;
+        }
+        if (StringUtils.isBlank(confirmPassword)){
+            map.put("confirmPasswordMsg", "确认密码不能为空");
+            return map;
+        }
+        if (!newPassword.equals(confirmPassword)){
+            map.put("confirmPasswordMsg", "两次密码输入不一致");
+            return map;
+        }
+
+        User user = hostHolder.getUser();//获取user对象
+        oldPassword = CommunityUtil.md5(oldPassword + user.getSalt());
+        if (!oldPassword.equals(user.getPassword())){
+            map.put("oldPasswordMsg", "原密码输入错误");
+            return map;
+        }
+
+        //可以修改密码了！
+        newPassword = CommunityUtil.md5(newPassword + user.getSalt());
+        userMapper.updatePassword(user.getId(), newPassword);
+        map.put("msg", "您已成功修改密码,请重新登录");
+
+
+        return map;
+    }
 }

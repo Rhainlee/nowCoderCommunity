@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -118,6 +119,26 @@ public class UserController {
         }
     }
 
+    // 处理修改密码请求
+    @LoginRequired //打上这个标记，登录才能访问
+    @RequestMapping(path = "/update", method = RequestMethod.POST)
+    public String updatePassword(Model model, String oldPassword, String newPassword, String confirmPassword){
+
+        Map<String, Object> map = userService.updatePassword(oldPassword, newPassword, confirmPassword);
+
+        if (!map.containsKey("msg")){ //修改密码失败
+            model.addAttribute("oldPasswordMsg", map.get("oldPasswordMsg"));
+            model.addAttribute("newPasswordMsg", map.get("newPasswordMsg"));
+            model.addAttribute("confirmPasswordMsg", map.get("confirmPasswordMsg"));
+            return "/site/setting";
+        }
+
+        // 成功修改密码
+        model.addAttribute("msg", map.get("msg"));
+        model.addAttribute("target", "/logout");
+        return "/site/operate-result";
+
+    }
 
 
 

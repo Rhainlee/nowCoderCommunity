@@ -136,7 +136,7 @@ public class LoginController implements CommunityConstant {
         int result = userService.activation(userId, code);
         if (result == ACTIVATION_SUCCESS){
             model.addAttribute("msg", "激活成功，您的账号已经可以正常使用了！");
-            model.addAttribute("target", "/login");//激活成功后跳转到登录页面，还没写呢？？
+            model.addAttribute("target", "/login");//激活成功后跳转到登录页面
         } else if (result == ACTIVATION_REPEAT){
             model.addAttribute("msg", "无效操作，您的账号已经激活过了！");
             model.addAttribute("target", "/index");//激活过，跳到首页
