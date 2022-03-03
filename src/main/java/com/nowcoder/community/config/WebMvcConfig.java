@@ -1,0 +1,35 @@
+package com.nowcoder.community.config;
+
+import com.nowcoder.community.controller.interceptor.AlphaInterceptor;
+import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
+import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private AlphaInterceptor alphaInterceptor;
+
+    @Autowired
+    private LoginTicketInterceptor loginTicketInterceptor;
+
+    @Autowired
+    private LoginRequiredInterceptor loginRequiredInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {  //配置顺序也是执行拦截器的顺序
+        registry.addInterceptor(alphaInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.png", "/**/*.jpg", "/**/*.jpeg")
+                .addPathPatterns("/register", "/login");
+
+        registry.addInterceptor(loginTicketInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        registry.addInterceptor(loginRequiredInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+    }
+}

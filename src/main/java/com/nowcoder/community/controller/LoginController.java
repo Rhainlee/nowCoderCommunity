@@ -50,6 +50,7 @@ public class LoginController implements CommunityConstant {
     }  //返回login.html,里面包含图片路径，浏览器通过路径再次访问服务器获得验证码图片
 
 
+    //处理验证码图片请求，像浏览器发送验证码图片
     @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
     public void getKaptcha(HttpServletResponse response, HttpSession session){
         //注意这里返回类型为void,因为这里向浏览器输出一个图片，不是字符串，也不是html
