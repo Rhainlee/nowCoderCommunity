@@ -80,7 +80,7 @@ public class UserService implements CommunityConstant {
             return map;
         }
 
-        //验证账号
+        //验证邮箱
         u = userMapper.selectByEmail(user.getEmail());
         if (u != null){
             map.put("emailMsg", "该邮箱已被注册！");
@@ -100,13 +100,13 @@ public class UserService implements CommunityConstant {
         userMapper.insertUser(user); //因为mybatis.configuration.useGeneratedKeys=true，所以insert时自动生成id
 
         //发送激活邮件activation.html
-        //访问模板，需要给模板传入动态参数(比如这里是username)，用Context来构造这个参数
+        //访问模板，需要给模板传入动态参数(比如这里是email+url)，用Context来构造这个参数,感觉和model作用很像啊
         Context context = new Context();
         context.setVariable("email", user.getEmail());
         //指定一个路径来处理激活请求
         //http://localhost:8080/community/activation/101/code   (101是用户id,code是激活码)
         String url = domain + contextPath + "/activation/" + user.getId() + "/" + user.getActivationCode();
-        context.setVariable(" ", url);
+        context.setVariable("url", url);
 
         //返回html网页，指定模板路径，传入参数
         String content = templateEngine.process("/mail/activation", context);
@@ -119,7 +119,11 @@ public class UserService implements CommunityConstant {
 
     //激活业务
     public int activation(int userId, String code){
-        User user = userMapper.selectById(userId);
+        User user = userMapper.selectById(userId); //此处是不是应该先做空值判断，万一链接伪造了用户id呢！很有可能呀！
+        if (user == null){   //空值判断，查不到用户则激活失败
+            return ACTIVATION_FAILURE;
+        }
+
         if (user.getStatus() == 1){ //已经激活过，这是重复激活
             return ACTIVATION_REPEAT;
         } else if (user.getActivationCode().equals(code)){

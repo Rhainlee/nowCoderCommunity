@@ -17,7 +17,7 @@ public class CommunityUtil {//工具类
     // hello -> abc123def456
     // hello + 3e4a8(随机字符串) -> abc123def456abc
     public static  String md5(String key) {
-        if (StringUtils.isBlank(key)) { //判断是否尾空串或空格
+        if (StringUtils.isBlank(key)) { //判断是否为空串或空格
             return null;
         }
         return DigestUtils.md5DigestAsHex(key.getBytes());

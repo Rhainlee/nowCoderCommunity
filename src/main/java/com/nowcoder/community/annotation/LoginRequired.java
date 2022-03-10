@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LoginRequired {  //打上这个标记，登录才能访问
+public @interface LoginRequired {  //打上这个注解的方法拦截器要进行登录状态检查
 
 }
