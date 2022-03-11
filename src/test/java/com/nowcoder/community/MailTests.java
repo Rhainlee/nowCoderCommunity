@@ -21,21 +21,26 @@ public class MailTests {
     @Autowired
     private TemplateEngine templateEngine;
 
-    @Test
-    public void testTextMail(){
-        mailClient.sendMail("362160001@qq.com", "TEST", "welcome!");
-    }
 
-    @Test
-    public void testHtmlMail(){
-        //访问模板，需要给模板传入动态参数(比如这里是username)，用Context来构造这个参数
-        Context context = new Context();
-        context.setVariable("username", "花生皮不皮");
+    /**
+     * 由于每次使用maven clean install 都会执行测试，自动发送邮件，所以我暂时注释了邮件发送测试
+     */
 
-        //返回html网页，指定模板路径，传入参数
-        String content = templateEngine.process("/mail/demo", context);
-        System.out.println(content);
+//    @Test
+//    public void testTextMail(){
+//        mailClient.sendMail("362160001@qq.com", "TEST", "welcome!");
+//    }
 
-        mailClient.sendMail("362160001@qq.com", "HTML", content);
-    }
+//    @Test
+//    public void testHtmlMail(){
+//        //访问模板，需要给模板传入动态参数(比如这里是username)，用Context来构造这个参数
+//        Context context = new Context();
+//        context.setVariable("username", "花生皮不皮");
+//
+//        //返回html网页，指定模板路径，传入参数
+//        String content = templateEngine.process("/mail/demo", context);
+//        System.out.println(content);
+//
+//        mailClient.sendMail("362160001@qq.com", "HTML", content);
+//    }
 }
