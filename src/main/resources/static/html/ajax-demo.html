@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX</title>
+</head>
+<body>
+  <p>
+    <input type="button" value="发送" onclick="send();">
+  </p>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+  <script>
+    function send() {
+      // 使用jQuery发送一个异步请求(格式是固定的，背下来也无妨！)
+      $.post(
+          "/community/alpha/ajax",     //访问路径
+          {"name":"张三", "age":"25"},  //向服务器提交的数据
+          function (data) {            //声明匿名回调函数，data即是服务器返回给浏览器的数据
+            console.log(typeof(data));
+            console.log(data);
+
+            data = $.parseJSON(data); //解析为JS对象？
+            console.log(typeof(data));
+            console.log(data.code);
+            console.log(data.msg);
+
+
+          }
+
+      );
+    }
+  </script>
+
+</body>
+</html>
