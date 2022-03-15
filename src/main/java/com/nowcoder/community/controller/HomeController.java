@@ -50,4 +50,11 @@ public class HomeController {
         return "/index";
     }
 
+    // 服务器异常
+    @RequestMapping(path = "/error", method = RequestMethod.GET)
+    public String getErrorPage() {
+        return "/error/500";
+    }
+
+
 }

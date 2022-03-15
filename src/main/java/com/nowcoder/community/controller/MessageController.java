@@ -32,6 +32,7 @@ public class MessageController {
     // 处理私信列表请求
     @RequestMapping(path = "/letter/list", method = RequestMethod.GET)
     public String getLetterList(Model model, Page page) {
+        //Integer.valueOf("abc"); //人为制造一个错误,测试异常处理
         User user = hostHolder.getUser();
 
         // 设置分页信息
@@ -126,6 +127,7 @@ public class MessageController {
     @RequestMapping(path = "/letter/send", method = RequestMethod.POST)
     @ResponseBody
     public String sendLetter(String toName, String content) {
+        //Integer.valueOf("abc"); //异步请求：人为制造一个错误
         User target = userService.findUserByName(toName); //获得对话目标
         if (target == null) {
             return CommunityUtil.getJSONString(1, "目标用户不存在");//1代表错误
