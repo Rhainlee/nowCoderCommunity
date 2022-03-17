@@ -5,10 +5,12 @@ import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.CookieUtil;
 import com.nowcoder.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,11 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -128,19 +133,19 @@ public class LoginController implements CommunityConstant {
     //已重构：不需要从Session里取验证码，而是从Redis里取&使用cookie来拼key
     @RequestMapping(path = "/login", method = RequestMethod.POST)
     public String login(Model model, String username, String password, String code, Boolean rememberMe,
-                        /*HttpSession session, */HttpServletResponse response, @CookieValue("kaptchaOwner") String kaptchaOwner){
+                        /*HttpSession session, */HttpServletResponse response, /*@CookieValue("kaptchaOwner") String kaptchaOwner*/HttpServletRequest request){
         //先检查验证码（不涉及业务层）
         //String kaptcha = (String) session.getAttribute("kaptcha");
-
+        if (CookieUtil.getValue(request, "kaptchaOwner") == null) {
+            model.addAttribute("codeMsg", "验证码失效，请重新输入"); //自己魔改的
+            return "/site/login";
+        }
+        String kaptchaOwner = CookieUtil.getValue(request, "kaptchaOwner");
         String kaptcha = null;
         if (StringUtils.isNotBlank(kaptchaOwner)) {  // 取到了需要的cookie,没有失效，其实我觉得应该加个失效的提示信息，自己改一下！
             String redisKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
             kaptcha = (String) redisTemplate.opsForValue().get(redisKey);
         }
-//        else {
-//            model.addAttribute("codeMsg", "验证码失效，请重新获取"); //自己魔改的，有可能有问题？？？
-//            return "/site/login";
-//        }
 
 
         if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
