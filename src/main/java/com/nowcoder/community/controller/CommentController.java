@@ -58,6 +58,17 @@ public class CommentController implements CommunityConstant {
 
         eventProducer.fireEvent(event);// 这里就体现并发和异步了,后续消息队列处理消息和继续向下执行程序其他功能是并发的，同时的
 
+        if (comment.getEntityType() == ENTITY_TYPE_POST) {
+            // 触发发帖事件
+            event = new Event()
+                    .setTopic(TOPIC_PUBLISH)
+                    .setUserId(comment.getUserId())
+                    .setEntityType(ENTITY_TYPE_POST)
+                    .setEntityId(discussPostId);
+            eventProducer.fireEvent(event);
+        }
+
+
         return "redirect:/discuss/detail/" + discussPostId;
 
 

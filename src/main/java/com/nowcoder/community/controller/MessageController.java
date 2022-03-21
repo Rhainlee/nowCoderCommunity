@@ -161,8 +161,8 @@ public class MessageController implements CommunityConstant {
         // 查询评论类通知
         Message message = messageService.findLastestNotice(user.getId(), TOPIC_COMMENT);
         Map<String, Object> messageVO = new HashMap<>();
+        messageVO.put("message", message);
         if (message != null) {
-            messageVO.put("message", message);
 
             // 构造通知内容！
             String content = HtmlUtils.htmlUnescape(message.getContent()); //反转义（在对象序列化为JSON字符串时会把特殊字符进行转义？？）
@@ -184,8 +184,8 @@ public class MessageController implements CommunityConstant {
         // 查询点赞类通知
         message = messageService.findLastestNotice(user.getId(), TOPIC_LIKE);
         messageVO = new HashMap<>();
+        messageVO.put("message", message);
         if (message != null) {
-            messageVO.put("message", message);
 
             // 构造通知内容！
             String content = HtmlUtils.htmlUnescape(message.getContent()); //反转义（在对象序列化为JSON字符串时会把特殊字符进行转义？？）
@@ -206,8 +206,8 @@ public class MessageController implements CommunityConstant {
         // 查询关注类通知
         message = messageService.findLastestNotice(user.getId(), TOPIC_FOLLOW);
         messageVO = new HashMap<>();
+        messageVO.put("message", message);
         if (message != null) {
-            messageVO.put("message", message);
 
             // 构造通知内容！
             String content = HtmlUtils.htmlUnescape(message.getContent()); //反转义（在对象序列化为JSON字符串时会把特殊字符进行转义？？）

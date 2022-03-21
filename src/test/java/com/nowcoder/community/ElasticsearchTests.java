@@ -135,7 +135,7 @@ public class ElasticsearchTests {
                     post.setId(Integer.valueOf(id));
 
                     String userId = hit.getSourceAsMap().get("userId").toString();
-                    post.setId(Integer.valueOf(userId));
+                    post.setUserId(Integer.valueOf(userId));
 
                     String title = hit.getSourceAsMap().get("title").toString();
                     post.setTitle(title);
